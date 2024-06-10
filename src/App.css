@@ -1,0 +1,33 @@
+#root {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+.money-book {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin: 0px auto;
+}
+.money-Input {
+  display: flex;
+  flex-direction: row;
+  border: 1px solid black;
+  gap: 20px;
+  margin: 0px auto;
+  padding: 10px 10px;
+  border-radius: 10px;
+  background-color: aqua;
+}
+.input-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.input-list label {
+  color: red;
+  margin: 0 0 5px;
+}
