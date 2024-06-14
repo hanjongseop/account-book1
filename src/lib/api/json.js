@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const JSON_API_HOST = "http://localhost:5000";
+const JSON_API_HOST = "https://pickle-rectangular-columnist.glitch.me";
 
 export const getExpenses = async () => {
   try {
