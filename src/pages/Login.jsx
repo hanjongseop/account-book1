@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import { login } from "../lib/api/auth";
+import Router from "../shared/Router";
 
 const StyLoginContainer = styled.div`
   padding: 0;
@@ -42,70 +44,52 @@ const StyledButton = styled.button`
   border: none;
 `;
 
-const Login = () => {
+const Login = ({ setUser }) => {
   const navigate = useNavigate();
   const [userId, setUserId] = useState("");
   const [userPassword, setUserPassword] = useState("");
-  const [userNickname, setUserNickname] = useState("");
 
   const handleSignUpClick = () => {
     navigate("/signup");
   };
-  //   const UserIdLength = (e) => {
-  //     // const value = e.target.value;
-  //     // if (value.length <= 10 && value.length >= 4) {
-  //     //   setUserId(value);
-  //     // }
-  //     if (e.target.value.length <= 10) {
-  //       setUserId(e.target.value);
-  //     }
-  //   };
 
-  //id 유효성 검사
-  const handleLogin = () => {
-    if (userId.length >= 4 && userId.length <= 10) {
-    } else {
-      alert("아이디는 4글자 이상 10글자 이하여야 합니다.");
-    }
-    if (userPassword.length >= 4 && userPassword.length <= 15) {
-    } else {
-      alert("비밀번호는 4글자 이상 15글자 이하여야 합니다.");
-    }
-    // if (userNickname.length >= 1 && userNickname.length <= 10) {
-    //   alert("닉네임은 1글자 이상 10글자 입니다.");
-    // } else {
-    //   alert("닉네임은 1글자 이상 10글자 이하여야 합니다.");
-    // }
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    const { id, nickname, avatar } = await login({
+      id: userId,
+      password: userPassword,
+    });
+    alert("로그인이 되었습니다");
+    setUser({ id, nickname, avatar });
+    navigate("/");
   };
 
-  const UserIdLength = (e) => {
+  const handleUserId = (e) => {
     setUserId(e.target.value);
   };
-  const UserPasswordLength = (e) => {
+  const handleUserPassword = (e) => {
     setUserPassword(e.target.value);
   };
   return (
     <StyLoginContainer>
       <StyLoginBox>
-        <StyLoginTitle>LOGin</StyLoginTitle>
-        <form>
+        <StyLoginTitle>로그인</StyLoginTitle>
+        <form onSubmit={handleLogin}>
           <StyLoginInput
             type="text"
             placeholder="아이디"
             value={userId}
-            onChange={UserIdLength}
+            onChange={handleUserId}
           />
           <br />
           <StyLoginInput
             type="password"
             placeholder="password"
             value={userPassword}
-            onChange={UserPasswordLength}
+            onChange={handleUserPassword}
           />
 
-          <StyledButton type="submit" onClick={handleLogin}>
-            로그인
-          </StyledButton>
+          <StyledButton type="submit">로그인</StyledButton>
           <StyledButton type="button" onClick={handleSignUpClick}>
             회원가입
           </StyledButton>

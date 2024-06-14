@@ -4,7 +4,7 @@ const InputAdd = ({ label, type, value, onChange }) => {
       <label>{label}</label>
       <input
         type={type}
-        value={value}
+        value={value || ""}
         onChange={onChange}
         min="2024-01-01"
         max="2024-12-31"

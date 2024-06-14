@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import GlobalStyle from "../GlobalStyle";
 import { v4 as uuidv4 } from "uuid";
 import styled from "styled-components";
 import InputAdd from "../components/InputAdd";
 import { useNavigate } from "react-router-dom";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { addExpense, getExpenses } from "../lib/api/json";
 
 const Button = styled.button`
   background-color: black;
@@ -17,9 +19,11 @@ const Button = styled.button`
   width: 150px;
   height: 60px;
 `;
+
 const Div1 = styled.div`
   padding: 10px;
 `;
+
 const Section = styled.section`
   background-color: aqua;
   max-width: 800px;
@@ -32,6 +36,7 @@ const Section = styled.section`
   border-radius: 10px;
   padding: 10px 10px;
 `;
+
 const Div2 = styled.div`
   background-color: aqua;
   max-width: 800px;
@@ -41,32 +46,61 @@ const Div2 = styled.div`
   margin: 0 auto;
   margin-top: 20px;
 `;
+
 const Line1 = styled.li`
   border: 1px solid black;
   border-radius: 10px;
   padding: 5px;
 `;
 
-function Home({ data, setData }) {
+function Home({ data, user }) {
   const [moneyList, setMoneyList] = useState(data);
   const [newDate, setNewDate] = useState("");
-  const [newList, setNewList] = useState("");
-  const [newMoney, setNewMoney] = useState("");
-  const [newDetail, setNewDetail] = useState("");
+  const [newItem, setNewItem] = useState("");
+  const [newAmount, setNewAmount] = useState("");
+  const [newDescription, setNewDescription] = useState("");
   const [month, setMonth] = useState("");
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const {
+    data: expense = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["expense"],
+    queryFn: getExpenses,
+  });
+
+  const mutation = useMutation({
+    mutationFn: addExpense,
+    onSuccess: () => {
+      queryClient.invalidateQueries("expense");
+    },
+    onError: (error) => {},
+  });
+
+  useEffect(() => {
+    if (expense.length > 0) {
+      setMoneyList(expense);
+    }
+  }, [expense]);
 
   const handleAddExpense = () => {
+    if (!user) {
+      alert("로그인 후 사용 가능합니다.");
+      return;
+    }
     const newExpense = {
       id: uuidv4(),
-      Date: newDate,
-      list: newList,
-      money: newMoney,
-      detail: newDetail,
+      month: parseInt(newDate.split("-")[1], 10),
+      date: newDate,
+      item: newItem,
+      amount: newAmount,
+      description: newDescription,
+      createdBy: user.nickname,
     };
-    const updatedList = [...moneyList, newExpense];
-    setMoneyList(updatedList);
-    setData(updatedList);
+    mutation.mutate(newExpense);
   };
 
   const monthAll = [
@@ -83,17 +117,18 @@ function Home({ data, setData }) {
     "11월",
     "12월",
   ];
-  const handelMonthClick = (month) => {
+
+  const handleMonthClick = (month) => {
     setMonth(month);
   };
 
   const selectMonth = moneyList.filter((expense) => {
-    const expenseMonth = new Date(expense.Date).getMonth();
+    const expenseMonth = new Date(expense.date).getMonth();
     return monthAll[expenseMonth] === month;
   });
 
   const totalAmount = selectMonth.reduce(
-    (sum, expense) => sum + Number(expense.money),
+    (sum, expense) => sum + Number(expense.amount),
     0
   );
 
@@ -108,27 +143,27 @@ function Home({ data, setData }) {
         <section className="money-Input">
           <InputAdd
             label="날짜"
-            type="Date"
+            type="date"
             value={newDate}
             onChange={(e) => setNewDate(e.target.value)}
           />
           <InputAdd
             label="항목"
             type="text"
-            value={newList}
-            onChange={(e) => setNewList(e.target.value)}
+            value={newItem}
+            onChange={(e) => setNewItem(e.target.value)}
           />
           <InputAdd
             label="금액"
             type="number"
-            value={newMoney}
-            onChange={(e) => setNewMoney(e.target.value)}
+            value={newAmount}
+            onChange={(e) => setNewAmount(e.target.value)}
           />
           <InputAdd
             label="내용"
             type="text"
-            value={newDetail}
-            onChange={(e) => setNewDetail(e.target.value)}
+            value={newDescription}
+            onChange={(e) => setNewDescription(e.target.value)}
           />
           <button onClick={handleAddExpense}>추가</button>
         </section>
@@ -138,7 +173,7 @@ function Home({ data, setData }) {
           <Section>
             {monthAll.map((month) => (
               <Div1 key={month}>
-                <Button onClick={() => handelMonthClick(month)}>{month}</Button>
+                <Button onClick={() => handleMonthClick(month)}>{month}</Button>
               </Div1>
             ))}
           </Section>
@@ -148,17 +183,18 @@ function Home({ data, setData }) {
           </Div2>
           <section>
             <Div2>
-              {month}내역{" "}
+              {month} 내역
               <ul>
                 {selectMonth.map((expense) => (
                   <Line1
                     key={expense.id}
                     onClick={() => handleItemClick(expense.id)}
                   >
-                    <div>날짜: {expense.Date}</div>
-                    <div>항목: {expense.list}</div>
-                    <div>금액: {Number(expense.money).toLocaleString()}원</div>
-                    <div>내용: {expense.detail}</div>
+                    <div>날짜: {expense.date}</div>
+                    <div>항목: {expense.item}</div>
+                    <div>금액: {Number(expense.amount).toLocaleString()}원</div>
+                    <div>내용: {expense.description}</div>
+                    <div>작성자: {expense.createdBy}</div>
                   </Line1>
                 ))}
               </ul>
